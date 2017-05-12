@@ -1,2 +1,2 @@
 # raspIR
-IR remote controller with raps
+IR remote controller with raspi
