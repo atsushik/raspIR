@@ -1,8 +1,7 @@
 /*
  * scanir.c
- * 
- * copyright © 2016 Katsuhiko Miki All rights reserved.
- * http://feijoa.jp/laboratory/raspberrypi/infrared/
+ * initialy from http://feijoa.jp/laboratory/raspberrypi/infrared/
+ *
  * gcc scanir.c -o scanir -lwiringPi
  */
 
@@ -11,6 +10,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <string.h>
 
 int readable = 1;       // 非同期でイベントが発生した場合、コールバックにより0に設定される
 int read_pin = 7;       // 入力ピン番号(wiringpiの番号)
@@ -93,6 +93,9 @@ int scan(FILE *fp)
     if(!digitalRead(read_pin)){ return 1; }
     
     int on, off;
+    int signalCount = 0;
+    char signals[4096];
+    char tmpSignal[64];
     
     // 送信が開始されるまで待機
     while( readable && digitalRead(read_pin) ){}
@@ -101,11 +104,23 @@ int scan(FILE *fp)
     while( readable ){
         on = getTime(0);
         off = getTime(1);
-        fprintf(fp, "%6d %6d\n", on, off);
+        //fprintf(fp, "%6d %6d\n", on, off);
+	if (strlen(signals) == 0) {
+	  sprintf(signals, "%d,%d", on, off);
+	}
+	else {
+	  sprintf(signals, "%s,%d,%d", signals, on, off);
+	}
+	//signals = tmpSignal;
+	//strcat(signals, tmpSignal);
+	//printf("%s\n", signals);
+
+	signalCount += 1;
 
         //最大継続時間同じ状態が続いたら送信は終了していると判断
         if(off > max_wait){ break; }
     }
+    fprintf(fp, "{\"format\":\"raw\",\"freq\":38,\"len\":%d,\"data\":[%s]}", signalCount, signals);
 
     return 0;
 }
@@ -133,5 +148,8 @@ int getInterval(double t1, double t2)
 {
     return (int)(t2-t1);
 }
+
+
+
 
 

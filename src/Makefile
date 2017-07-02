@@ -1,4 +1,4 @@
-all: scanir sendir
+all: scanir scanir2 sendir
 
 scanir: scanir.c
 	gcc scanir.c -o scanir -lwiringPi
